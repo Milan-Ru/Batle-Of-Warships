@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Battle Of Warships Indonesia - Komunitas & Forum Pemain</title>
+<meta name="description" content="Komunitas pemain Battle Of Warships (Batle Of Warships) Indonesia. Diskusi strategi, share hasil pertempuran, ngobrol bareng kapten kapal perang lainnya.">
+<meta name="keywords" content="Battle Of Warships, Batle Of Warships, Battle Of Warships Community, komunitas Battle Of Warships Indonesia, forum battleship indonesia">
+<link rel="icon" href="https://ar-hosting.pages.dev/1783420328979.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebSite","name":"Battle Of Warships Indonesia","alternateName":"Batle Of Warships Community","description":"Komunitas pemain Battle Of Warships - diskusi, chat, dan share hasil pertempuran kapal perang WW2."}
+</script>
+
+<style>
+:root{ --radius:10px; --font-logo:'Anton', sans-serif; }
+/* Palet ala Meta */
+[data-theme="dark"]{
+  --bg-deep:#18191A; --bg:#242526; --surface:#3a3b3c; --surface-2:#4e4f50;
+  --border:#3e4042; --accent:#1877F2; --accent-bright:#4293fb;
+  --text:#e4e6eb; --text-dim:#b0b3b8; --danger:#f4574a; --success:#42b72a;
+}
+[data-theme="light"]{
+  --bg-deep:#f0f2f5; --bg:#ffffff; --surface:#f0f2f5; --surface-2:#e4e6eb;
+  --border:#ced0d4; --accent:#1877F2; --accent-bright:#0a5cd6;
+  --text:#050505; --text-dim:#65676b; --danger:#d9342b; --success:#2f8b1c;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--bg-deep);color:var(--text);min-height:100vh;display:flex;flex-direction:column;transition:background .3s,color .3s}
+
+header{background:var(--bg);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.logo{display:flex;align-items:center;gap:8px}
+.logo img{width:32px;height:32px;border-radius:6px;object-fit:cover}
+.logo-text{font-family:var(--font-logo);font-size:1.1rem;letter-spacing:.5px;color:var(--accent-bright)}
+.header-actions{display:flex;align-items:center;gap:10px}
+.icon-btn{background:var(--surface);border:none;color:var(--text);width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.15rem;cursor:pointer}
+.auth-btn{background:var(--accent);border:none;color:#fff;padding:8px 16px;border-radius:20px;font-size:0.85rem;font-weight:600;cursor:pointer}
+
+nav.tabs{display:flex;background:var(--bg);border-bottom:1px solid var(--border);position:sticky;top:57px;z-index:99}
+nav.tabs button{flex:1;background:none;border:none;color:var(--text-dim);padding:12px 8px;font-size:0.9rem;font-weight:600;cursor:pointer;border-bottom:3px solid transparent}
+nav.tabs button.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+main{flex:1;width:100%;max-width:640px;margin:0 auto;padding:14px;padding-bottom:100px}
+.view{display:none}
+.view.active{display:block;animation:fadeIn .25s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+.hero{width:100%;border-radius:var(--radius);overflow:hidden;margin-bottom:16px;position:relative;aspect-ratio:16/7}
+.hero img{width:100%;height:100%;object-fit:cover}
+.hero-overlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(24,25,26,.1) 40%,rgba(24,25,26,.9) 100%);display:flex;align-items:flex-end;padding:14px}
+.hero-overlay h1{font-family:var(--font-logo);color:#fff;font-size:1.6rem;letter-spacing:1px;text-shadow:0 2px 8px rgba(0,0,0,.6)}
+
+.composer{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin-bottom:16px}
+.composer textarea{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px;font-size:.9rem;resize:none;min-height:56px;font-family:inherit;text-align:justify}
+.composer textarea:focus{outline:none;border-color:var(--accent)}
+.composer-actions{display:flex;align-items:center;gap:8px;margin-top:10px}
+.file-label{display:flex;align-items:center;justify-content:center;width:38px;height:38px;font-size:1.3rem;color:var(--accent);cursor:pointer;border:1.5px solid var(--border);border-radius:50%;flex-shrink:0}
+.file-label.has-file{border-color:var(--success);color:var(--success)}
+.file-name-preview{font-size:.72rem;color:var(--success);max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.btn-primary{background:var(--accent);color:#fff;border:none;padding:9px 18px;border-radius:20px;font-weight:700;font-size:.85rem;cursor:pointer}
+.btn-primary:disabled{opacity:.5}
+
+.post{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:14px;overflow:hidden}
+.post-head{display:flex;align-items:center;gap:8px;padding:10px 12px}
+.post-head img{width:30px;height:30px;border-radius:50%;object-fit:cover}
+.post-head .name{font-weight:600;font-size:.85rem}
+.post-head .time{font-size:.7rem;color:var(--text-dim)}
+.post-caption{padding:0 12px 10px;font-size:.88rem;line-height:1.45;text-align:justify}
+.edited-tag{font-size:.68rem;color:var(--text-dim);font-style:italic;margin-left:4px}
+.post-img{width:100%;max-height:420px;object-fit:cover;display:block}
+.post-footer{display:flex;gap:16px;padding:8px 12px;border-top:1px solid var(--border)}
+.like-btn,.link-btn{background:none;border:none;color:var(--text-dim);font-size:.85rem;cursor:pointer}
+.like-btn.liked{color:var(--accent)}
+
+.chat-container{display:flex;flex-direction:column;height:calc(100vh - 190px)}
+.chat-messages{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:6px;padding:6px 2px 10px}
+.typing-indicator{font-size:.75rem;color:var(--text-dim);padding:2px 8px;font-style:italic;min-height:18px}
+.msg-wrap{display:flex;flex-direction:column;max-width:74%}
+.msg-wrap.mine{align-self:flex-end;align-items:flex-end}
+.msg-wrap.other{align-self:flex-start;align-items:flex-start}
+.reply-quote{font-size:.72rem;background:rgba(0,0,0,.15);border-left:3px solid var(--accent);padding:4px 8px;border-radius:6px;margin-bottom:2px;color:var(--text-dim);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.msg{padding:8px 12px;border-radius:14px;font-size:.87rem;line-height:1.4;text-align:justify;position:relative}
+.msg .m-name{font-size:.7rem;color:var(--accent-bright);font-weight:600;margin-bottom:2px;display:block}
+.msg-wrap.other .msg{background:var(--surface);border-bottom-left-radius:4px}
+.msg-wrap.mine .msg{background:var(--accent);color:#fff;border-bottom-right-radius:4px}
+.msg-wrap.mine .msg .m-name{color:rgba(255,255,255,.85)}
+.msg-reactions{display:flex;gap:3px;margin-top:2px;flex-wrap:wrap}
+.reaction-chip{background:var(--surface-2);border-radius:10px;padding:1px 6px;font-size:.72rem;display:flex;align-items:center;gap:2px}
+.msg-actions-row{display:flex;gap:8px;margin-top:2px}
+.msg-actions-row button{font-size:.68rem}
+.reaction-picker{position:absolute;bottom:100%;background:var(--bg);border:1px solid var(--border);border-radius:20px;padding:4px 8px;display:flex;gap:6px;box-shadow:0 2px 10px rgba(0,0,0,.3);z-index:10}
+.reaction-picker span{font-size:1.2rem;cursor:pointer}
+
+.chat-input-bar{display:flex;flex-direction:column;gap:6px;padding:10px 2px;border-top:1px solid var(--border)}
+.reply-preview-bar{display:flex;align-items:center;justify-content:space-between;background:var(--surface);border-radius:8px;padding:6px 10px;font-size:.78rem;color:var(--text-dim)}
+.reply-preview-bar button{background:none;border:none;color:var(--text-dim);font-size:1rem}
+.chat-input-row{display:flex;gap:8px}
+.chat-input-row input{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:10px 16px;color:var(--text);font-size:.88rem}
+.send-btn{background:var(--accent);border:none;width:40px;height:40px;border-radius:50%;color:#fff;font-size:1.1rem;cursor:pointer;flex-shrink:0}
+
+.ai-fab{position:fixed;bottom:90px;right:16px;width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--accent) 0%,var(--accent-bright) 100%);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.5rem;box-shadow:0 4px 16px rgba(0,0,0,.4);border:none;cursor:pointer;z-index:150}
+
+.side-panel{position:fixed;top:0;right:0;height:100%;width:280px;max-width:82vw;background:var(--bg);border-left:1px solid var(--border);transform:translateX(100%);transition:transform .25s ease;z-index:300;display:flex;flex-direction:column;padding:16px;overflow-y:auto}
+.side-panel.open{transform:translateX(0)}
+.side-panel-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:299;opacity:0;pointer-events:none;transition:opacity .25s ease}
+.side-panel-overlay.open{opacity:1;pointer-events:auto}
+.side-panel h3{font-size:.85rem;color:var(--text-dim);margin:14px 0 6px;text-transform:uppercase}
+.side-panel .menu-item{display:flex;align-items:center;gap:10px;padding:11px 8px;border-radius:8px;color:var(--text);font-size:.9rem;cursor:pointer;background:none;border:none;width:100%;text-align:left;text-decoration:none}
+.side-panel .menu-item:active{background:var(--surface)}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:8px}
+.switch{position:relative;width:42px;height:24px;background:var(--border);border-radius:12px;cursor:pointer}
+.switch.on{background:var(--accent)}
+.switch::after{content:'';position:absolute;top:2px;left:2px;width:20px;height:20px;background:#fff;border-radius:50%;transition:left .2s ease}
+.switch.on::after{left:20px}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:400;display:none;align-items:flex-end;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal-sheet{background:var(--bg);border-radius:16px 16px 0 0;width:100%;max-width:480px;padding:20px;animation:slideUp .25s ease;position:relative}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-sheet h2{font-size:1.1rem;margin-bottom:14px}
+.google-btn{width:100%;background:#fff;color:#3c4043;border:1px solid var(--border);border-radius:8px;padding:11px;font-size:.9rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:12px}
+.divider{display:flex;align-items:center;gap:10px;color:var(--text-dim);font-size:.78rem;margin:12px 0}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.modal-sheet input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-size:.88rem;margin-bottom:10px}
+.link-btn{color:var(--accent);padding:4px 0}
+.close-modal{position:absolute;top:16px;right:16px;background:none;border:none;color:var(--text-dim);font-size:1.3rem}
+
+.login-gate{text-align:center;padding:20px;color:var(--text-dim);font-size:.85rem;background:var(--bg);border:1px dashed var(--border);border-radius:var(--radius);margin-bottom:14px}
+.empty-state{text-align:center;padding:36px 16px;color:var(--text-dim);font-size:.85rem}
+
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--surface);border:1px solid var(--accent);color:var(--text);padding:10px 18px;border-radius:20px;font-size:.82rem;z-index:500;transition:transform .3s ease;max-width:90%;text-align:center}
+#toast.show{transform:translateX(-50%) translateY(0)}
+#undoSnackbar{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--surface);border:1px solid var(--danger);color:var(--text);padding:10px 14px;border-radius:20px;font-size:.82rem;z-index:500;transition:transform .3s ease;display:flex;align-items:center;gap:12px}
+.spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;display:inline-block;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+#aiView .chat-container{height:calc(100vh - 130px)}
+.ai-header-bar{display:flex;align-items:center;justify-content:space-between;padding:8px 2px;margin-bottom:6px}
+.ai-header-bar select{background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-size:.8rem}
+.char-counter{font-size:.72rem;color:var(--text-dim)}
+
+@media (min-width:768px){
+  main{max-width:900px;padding:24px 20px}
+  .hero{aspect-ratio:21/6}
+  .post-img{max-height:480px}
+}
+@media (min-width:1024px){
+  main{max-width:1100px}
+  .logo-text{font-size:1.3rem}
+  .hero-overlay h1{font-size:2.2rem}
+  .composer textarea{min-height:70px}
+}
+</style>
+</head>
+<body>
+
+<div class="side-panel-overlay" id="sidePanelOverlay" onclick="closeSidePanel()"></div>
+<div class="side-panel" id="sidePanel">
+  <div style="display:flex;align-items:center;justify-content:space-between">
+    <strong>Menu</strong>
+    <button class="icon-btn" onclick="closeSidePanel()">✕</button>
+  </div>
+  <h3>Profil</h3>
+  <button class="menu-item" onclick="openProfileModal()">👤 Edit Profil</button>
+  <h3>AI Chatbot</h3>
+  <button class="menu-item" onclick="openAiView()">✨ Ngobrol dengan AI</button>
+  <h3>Pengaturan</h3>
+  <div class="toggle-row"><span>Mode Terang</span><div class="switch" id="themeSwitch" onclick="toggleTheme()"></div></div>
+  <div class="toggle-row"><span>Notifikasi</span><div class="switch on" id="notifSwitch" onclick="toggleNotif()"></div></div>
+  <button class="menu-item" onclick="clearAiHistory()">🗑️ Hapus Riwayat Chat AI</button>
+  <h3>Komunitas</h3>
+  <a class="menu-item" href="https://whatsapp.com/channel/0029Vb8jORF59PwLWf843J1x" target="_blank" rel="noopener">📱 Channel WhatsApp</a>
+  <div style="margin-top:auto">
+    <button class="menu-item" onclick="logout()" style="color:var(--danger)">🚪 Logout</button>
+  </div>
+</div>
+
+<header>
+  <div class="logo">
+    <img src="https://ar-hosting.pages.dev/1783420285662.jpg" alt="logo">
+    <span class="logo-text">BATTLE OF WARSHIPS ID</span>
+  </div>
+  <div class="header-actions">
+    <div id="authArea"></div>
+    <button class="icon-btn" onclick="openSidePanel()">☰</button>
+  </div>
+</header>
+
+<nav class="tabs">
+  <button class="active" data-view="feed">🚢 Feed</button>
+  <button data-view="chat">💬 Chat</button>
+</nav>
+
+<main>
+  <section id="feedView" class="view active">
+    <div class="hero">
+      <img src="https://ar-hosting.pages.dev/1783420312160.jpg" alt="Battle Of Warships">
+      <div class="hero-overlay"><h1>BATTLE OF WARSHIPS</h1></div>
+    </div>
+    <div id="feedList"></div>
+    <div id="composerArea"></div>
+  </section>
+
+  <section id="chatView" class="view">
+    <div class="chat-container">
+      <div class="chat-messages" id="chatMessages"></div>
+      <div class="typing-indicator" id="typingIndicator"></div>
+      <div id="chatInputArea"></div>
+    </div>
+  </section>
+
+  <section id="aiView" class="view">
+    <div class="ai-header-bar">
+      <select id="aiProviderSelect">
+        <option value="groq">Groq</option>
+        <option value="gemini">Gemini</option>
+        <option value="openrouter">OpenRouter</option>
+      </select>
+      <span class="char-counter" id="aiCharCounter">700 karakter tersisa</span>
+    </div>
+    <div class="chat-container">
+      <div class="chat-messages" id="aiMessages"></div>
+      <div class="chat-input-bar">
+        <div class="chat-input-row">
+          <input type="text" id="aiInput" placeholder="Tanya sesuatu..." maxlength="700">
+          <button class="send-btn" id="aiSendBtn" onclick="sendAiMessage()">➤</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<button class="ai-fab" onclick="openAiView()" title="Chat AI">✨</button>
+
+<div class="modal-overlay" id="authModal">
+  <div class="modal-sheet">
+    <button class="close-modal" onclick="closeAuthModal()">✕</button>
+    <h2>Masuk ke akunmu</h2>
+    <button class="google-btn" onclick="loginGoogle()">🔵 Lanjutkan dengan Google</button>
+    <div class="divider">atau</div>
+    <input type="email" id="authEmail" placeholder="Email">
+    <input type="password" id="authPassword" placeholder="Password">
+    <button class="btn-primary" style="width:100%" onclick="loginEmail()">Masuk</button>
+    <div style="display:flex;justify-content:space-between;margin-top:8px">
+      <button class="link-btn" onclick="forgotPassword()">Lupa password?</button>
+      <button class="link-btn" onclick="registerEmail()">Daftar akun baru</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="profileModal">
+  <div class="modal-sheet">
+    <button class="close-modal" onclick="closeProfileModal()">✕</button>
+    <h2>Edit Profil</h2>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+      <img id="profilePhotoPreview" src="" style="width:56px;height:56px;border-radius:50%;object-fit:cover;background:var(--surface)">
+      <label class="file-label" style="border-radius:8px;width:auto;padding:6px 12px">Ganti Foto
+        <input type="file" id="profilePhotoInput" accept="image/*" style="display:none">
+      </label>
+    </div>
+    <input type="text" id="profileNameInput" placeholder="Nama tampilan (boleh font unik)" maxlength="60">
+    <button class="btn-primary" style="width:100%" onclick="saveProfile()">Simpan</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+<div id="undoSnackbar"><span id="undoText">Dihapus</span><button class="link-btn" id="undoBtn" style="font-weight:700">Urungkan</button></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+<script>
+// ================= CONFIG =================
+const firebaseConfig = {
+  apiKey: "AIzaSyDGKQuxfKxF0rItQ52XX9gPyguo71hMXOo",
+  authDomain: "batle-of-warships.firebaseapp.com",
+  projectId: "batle-of-warships",
+  storageBucket: "batle-of-warships.firebasestorage.app",
+  messagingSenderId: "59053224895",
+  appId: "1:59053224895:web:f48d63020f96a4d5e3e70a"
+};
+const IMGBB_KEY = "a445c323b1b7e93a89ff6c6ca0b83dd9";
+const MAX_UPLOAD_MB = 3;
+const TARGET_COMPRESS_MB = 1;
+const AI_CHAR_LIMIT_PER_CHAT = 700;
+const EDIT_WINDOW_MS = 15 * 60 * 1000;
+const DELETE_WINDOW_MS = 10 * 24 * 60 * 60 * 1000;
+const SEND_THROTTLE_MS = 3000;
+const API_ENDPOINT = "/.netlify/functions/api";
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+
+let currentUser = null;
+let userProfile = null;
+let lastSendTime = 0;
+
+// ================= UTIL =================
+function toast(msg, ms = 2500) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => t.classList.remove("show"), ms);
+}
+function escapeHtml(str) {
+  const div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
+}
+const BAD_WORDS = ["anjing", "bangsat", "kontol", "memek", "goblok"];
+function filterText(text) {
+  let out = text;
+  BAD_WORDS.forEach(w => { out = out.replace(new RegExp(w, "gi"), "*".repeat(w.length)); });
+  return out;
+}
+function timeAgo(ts) {
+  if (!ts) return "";
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  const diff = (Date.now() - d.getTime()) / 1000;
+  if (diff < 60) return "baru saja";
+  if (diff < 3600) return Math.floor(diff / 60) + " menit lalu";
+  if (diff < 86400) return Math.floor(diff / 3600) + " jam lalu";
+  return d.toLocaleDateString("id-ID");
+}
+function canEdit(ts) {
+  if (!ts) return false;
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  return (Date.now() - d.getTime()) < EDIT_WINDOW_MS;
+}
+function canDelete(ts) {
+  if (!ts) return false;
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  return (Date.now() - d.getTime()) < DELETE_WINDOW_MS;
+}
+function throttledOk() {
+  const now = Date.now();
+  if (now - lastSendTime < SEND_THROTTLE_MS) {
+    toast("Tunggu sebentar sebelum kirim lagi");
+    return false;
+  }
+  lastSendTime = now;
+  return true;
+}
+function showUndoSnackbar(label, onConfirmDelete, onUndo) {
+  const bar = document.getElementById("undoSnackbar");
+  const btn = document.getElementById("undoBtn");
+  document.getElementById("undoText").textContent = label;
+  bar.style.transform = "translateX(-50%) translateY(0)";
+  let undone = false;
+  const timer = setTimeout(() => {
+    if (!undone) onConfirmDelete();
+    bar.style.transform = "translateX(-50%) translateY(100px)";
+  }, 5000);
+  btn.onclick = () => {
+    undone = true;
+    clearTimeout(timer);
+    bar.style.transform = "translateX(-50%) translateY(100px)";
+    onUndo();
+  };
+}
+
+async function callApi(action, payload) {
+  const idToken = currentUser ? await currentUser.getIdToken() : null;
+  const res = await fetch(API_ENDPOINT, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action, payload, idToken })
+  });
+  const data = await res.json();
+  if (!data.ok) throw new Error(data.error || "Request gagal");
+  return data.result;
+}
+
+// ================= KOMPRESI FOTO =================
+function compressImage(file, targetMB = TARGET_COMPRESS_MB) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const reader = new FileReader();
+    reader.onload = e => { img.src = e.target.result; };
+    reader.onerror = reject;
+    img.onload = () => {
+      let { width, height } = img;
+      const maxDim = 1600;
+      if (width > maxDim || height > maxDim) {
+        const ratio = Math.min(maxDim / width, maxDim / height);
+        width = Math.round(width * ratio); height = Math.round(height * ratio);
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = width; canvas.height = height;
+      canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+      let quality = 0.85;
+      const tryCompress = () => {
+        canvas.toBlob(blob => {
+          if (!blob) return reject(new Error("Kompresi gagal"));
+          if (blob.size / (1024 * 1024) > targetMB && quality > 0.4) { quality -= 0.1; tryCompress(); }
+          else resolve(new File([blob], file.name, { type: "image/jpeg" }));
+        }, "image/jpeg", quality);
+      };
+      tryCompress();
+    };
+    img.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+async function uploadToImgbb(file) {
+  let toSend = file;
+  if (file.size / (1024 * 1024) > TARGET_COMPRESS_MB) {
+    try { toSend = await compressImage(file); } catch { toSend = file; }
+  }
+  const formData = new FormData();
+  formData.append("image", toSend);
+  const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, { method: "POST", body: formData });
+  const data = await res.json();
+  if (!data.success) throw new Error("Upload foto gagal");
+  return data.data.url;
+}
+
+// ================= AUTH =================
+auth.onAuthStateChanged(async user => {
+  if (user && !user.isAnonymous) {
+    currentUser = user;
+    try {
+      userProfile = await callApi("getProfile", { uid: user.uid, defaultName: user.displayName, defaultPhoto: user.photoURL });
+      applyTheme(userProfile.theme || "dark");
+    } catch (e) {
+      userProfile = { name: user.displayName || "Kapten", photoURL: user.photoURL || "", theme: "dark", notif: true };
+    }
+  } else { currentUser = null; userProfile = null; }
+  renderAuthArea(); renderComposer(); renderChatInput(); renderAiInputState();
+});
+auth.signInAnonymously().catch(() => {});
+
+function openAuthModal() { document.getElementById("authModal").classList.add("show"); }
+function closeAuthModal() { document.getElementById("authModal").classList.remove("show"); }
+function loginGoogle() {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  auth.signInWithPopup(provider).then(closeAuthModal).catch(err => toast("Login gagal: " + err.message));
+}
+function loginEmail() {
+  const email = document.getElementById("authEmail").value.trim();
+  const pass = document.getElementById("authPassword").value;
+  if (!email || !pass) { toast("Isi email dan password"); return; }
+  auth.signInWithEmailAndPassword(email, pass).then(closeAuthModal).catch(err => toast("Gagal: " + err.message));
+}
+function registerEmail() {
+  const email = document.getElementById("authEmail").value.trim();
+  const pass = document.getElementById("authPassword").value;
+  if (!email || !pass) { toast("Isi email dan password dulu"); return; }
+  auth.createUserWithEmailAndPassword(email, pass).then(closeAuthModal).catch(err => toast("Gagal daftar: " + err.message));
+}
+function forgotPassword() {
+  const email = document.getElementById("authEmail").value.trim();
+  if (!email) { toast("Isi email dulu"); return; }
+  auth.sendPasswordResetEmail(email).then(() => toast("Link reset dikirim ke email")).catch(err => toast("Gagal: " + err.message));
+}
+function logout() { auth.signOut().then(() => { toast("Berhasil logout"); closeSidePanel(); }); }
+function renderAuthArea() {
+  const el = document.getElementById("authArea");
+  if (currentUser && userProfile) {
+    el.innerHTML = `<img src="${userProfile.photoURL || ''}" alt="" style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:1.5px solid var(--accent)">`;
+  } else {
+    el.innerHTML = `<button class="auth-btn" onclick="openAuthModal()">Login</button>`;
+  }
+}
+
+// ================= SIDE PANEL / THEME =================
+function openSidePanel() { document.getElementById("sidePanel").classList.add("open"); document.getElementById("sidePanelOverlay").classList.add("open"); }
+function closeSidePanel() { document.getElementById("sidePanel").classList.remove("open"); document.getElementById("sidePanelOverlay").classList.remove("open"); }
+function applyTheme(theme) {
+  document.documentElement.setAttribute("data-theme", theme);
+  document.getElementById("themeSwitch").classList.toggle("on", theme === "light");
+}
+function toggleTheme() {
+  const next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+  applyTheme(next);
+  if (currentUser) { callApi("updateSettings", { uid: currentUser.uid, theme: next }).catch(() => {}); if (userProfile) userProfile.theme = next; }
+}
+function toggleNotif() {
+  const el = document.getElementById("notifSwitch");
+  const on = !el.classList.contains("on");
+  el.classList.toggle("on", on);
+  if (currentUser) callApi("updateSettings", { uid: currentUser.uid, notif: on }).catch(() => {});
+}
+
+// ================= PROFILE MODAL =================
+function openProfileModal() {
+  if (!currentUser) { toast("Login dulu ya"); openAuthModal(); return; }
+  document.getElementById("profileNameInput").value = userProfile?.name || "";
+  document.getElementById("profilePhotoPreview").src = userProfile?.photoURL || "";
+  document.getElementById("profileModal").classList.add("show");
+}
+function closeProfileModal() { document.getElementById("profileModal").classList.remove("show"); }
+document.getElementById("profilePhotoInput").addEventListener("change", async e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  if (f.size > MAX_UPLOAD_MB * 1024 * 1024) { toast(`Ukuran foto maksimal ${MAX_UPLOAD_MB}MB`); return; }
+  toast("Mengupload foto...");
+  try {
+    const url = await uploadToImgbb(f);
+    document.getElementById("profilePhotoPreview").src = url;
+    document.getElementById("profilePhotoPreview").dataset.pendingUrl = url;
+    toast("Foto siap, klik Simpan");
+  } catch (err) { toast("Gagal upload: " + err.message); }
+});
+async function saveProfile() {
+  const name = document.getElementById("profileNameInput").value.trim();
+  const pendingPhoto = document.getElementById("profilePhotoPreview").dataset.pendingUrl;
+  if (!name) { toast("Nama gak boleh kosong"); return; }
+  try {
+    await callApi("updateProfile", { uid: currentUser.uid, name, photoURL: pendingPhoto || userProfile.photoURL });
+    userProfile.name = name;
+    if (pendingPhoto) userProfile.photoURL = pendingPhoto;
+    renderAuthArea(); closeProfileModal(); toast("Profil disimpan");
+  } catch (err) { toast("Gagal simpan: " + err.message); }
+}
+
+// ================= TABS =================
+document.querySelectorAll("nav.tabs button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll("nav.tabs button").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+    document.getElementById(btn.dataset.view + "View").classList.add("active");
+  });
+});
+function openAiView() {
+  closeSidePanel();
+  document.querySelectorAll("nav.tabs button").forEach(b => b.classList.remove("active"));
+  document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+  document.getElementById("aiView").classList.add("active");
+  loadAiHistory();
+}
+
+// ================= COMPOSER (FEED) =================
+function renderComposer() {
+  const el = document.getElementById("composerArea");
+  if (!currentUser) {
+    el.innerHTML = `<div class="login-gate">Login untuk membagikan hasil pertempuranmu.<br><button class="auth-btn" onclick="openAuthModal()" style="margin-top:8px">Login</button></div>`;
+    return;
+  }
+  el.innerHTML = `
+    <div class="composer">
+      <textarea id="postCaption" placeholder="Ceritakan hasil pertempuranmu..." maxlength="300"></textarea>
+      <div class="composer-actions">
+        <label class="file-label" id="fileLabel">+<input type="file" id="postFile" accept="image/*" style="display:none"></label>
+        <span class="file-name-preview" id="fileLabelText"></span>
+        <button class="btn-primary" id="postSubmitBtn" onclick="submitPost()" style="margin-left:auto">Kirim</button>
+      </div>
+    </div>`;
+  document.getElementById("postFile").addEventListener("change", e => {
+    const f = e.target.files[0];
+    const label = document.getElementById("fileLabel");
+    const labelText = document.getElementById("fileLabelText");
+    if (!f) return;
+    if (f.size > MAX_UPLOAD_MB * 1024 * 1024) {
+      toast(`Ukuran foto maksimal ${MAX_UPLOAD_MB}MB`);
+      e.target.value = ""; label.classList.remove("has-file"); labelText.textContent = "";
+      return;
+    }
+    label.classList.add("has-file");
+    label.childNodes[0].nodeValue = "✓";
+    labelText.textContent = f.name.slice(0, 16);
+  });
+}
+
+let posting = false;
+async function submitPost() {
+  if (posting || !currentUser) { if (!currentUser) toast("Login dulu ya"); return; }
+  if (!throttledOk()) return;
+  const captionEl = document.getElementById("postCaption");
+  const fileEl = document.getElementById("postFile");
+  const caption = captionEl.value.trim();
+  const file = fileEl.files[0];
+  if (!caption && !file) { toast("Isi caption atau pilih foto dulu"); return; }
+  posting = true;
+  const btn = document.getElementById("postSubmitBtn");
+  btn.disabled = true; btn.innerHTML = `<span class="spinner"></span>`;
+  try {
+    let imageUrl = null;
+    if (file) imageUrl = await uploadToImgbb(file);
+    await db.collection("posts").add({
+      uid: currentUser.uid, name: userProfile.name, photoURL: userProfile.photoURL || "",
+      caption: filterText(caption), imageUrl, likes: [], edited: false,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    captionEl.value = ""; fileEl.value = "";
+    document.getElementById("fileLabel").classList.remove("has-file");
+    document.getElementById("fileLabel").childNodes[0].nodeValue = "+";
+    document.getElementById("fileLabelText").textContent = "";
+    toast("Berhasil dikirim!");
+  } catch (err) { toast("Gagal: " + err.message); }
+  finally { posting = false; btn.disabled = false; btn.textContent = "Kirim"; }
+}
+
+// ================= FEED REALTIME + DELETE/UNDO =================
+let postCache = {};
+let lastPostsSnap = null;
+let pendingDeletePosts = new Set();
+
+function renderFeedList() {
+  if (!lastPostsSnap) return;
+  const list = document.getElementById("feedList");
+  const docs = lastPostsSnap.docs.filter(d => !pendingDeletePosts.has(d.id));
+  if (docs.length === 0) { list.innerHTML = `<div class="empty-state">Belum ada postingan. Jadilah yang pertama!</div>`; return; }
+  list.innerHTML = "";
+  postCache = {};
+  docs.forEach(doc => {
+    const p = doc.data();
+    postCache[doc.id] = p.caption;
+    const liked = currentUser && p.likes && p.likes.includes(currentUser.uid);
+    const isMine = currentUser && p.uid === currentUser.uid;
+    const div = document.createElement("div");
+    div.className = "post";
+    div.innerHTML = `
+      <div class="post-head">
+        ${p.photoURL ? `<img src="${p.photoURL}" alt="">` : `<div style="width:30px;height:30px;border-radius:50%;background:var(--surface)"></div>`}
+        <div><div class="name">${escapeHtml(p.name || "Kapten")}</div><div class="time">${timeAgo(p.timestamp)}</div></div>
+        ${isMine && canDelete(p.timestamp) ? `<button class="link-btn delete-post-btn" data-id="${doc.id}" style="margin-left:auto;color:var(--danger)">hapus</button>` : ""}
+      </div>
+      ${p.caption ? `<div class="post-caption">${escapeHtml(p.caption)}${p.edited ? '<span class="edited-tag">(diedit)</span>' : ""}${isMine && canEdit(p.timestamp) ? ` <button class="link-btn edit-post-btn" data-id="${doc.id}" style="font-size:.72rem">edit</button>` : ""}</div>` : ""}
+      ${p.imageUrl ? `<img class="post-img" src="${p.imageUrl}" loading="lazy" alt="hasil battle">` : ""}
+      <div class="post-footer"><button class="like-btn ${liked ? "liked" : ""}" data-id="${doc.id}">${liked ? "★" : "☆"} Suka (${(p.likes || []).length})</button></div>`;
+    list.appendChild(div);
+  });
+}
+db.collection("posts").orderBy("timestamp", "desc").limit(30).onSnapshot(snap => { lastPostsSnap = snap; renderFeedList(); }, err => toast("Gagal memuat feed: " + err.message));
+
+document.getElementById("feedList").addEventListener("click", e => {
+  const editBtn = e.target.closest(".edit-post-btn");
+  if (editBtn) { editPost(editBtn.dataset.id, postCache[editBtn.dataset.id] || ""); return; }
+  const likeBtn = e.target.closest(".like-btn");
+  if (likeBtn) { toggleLike(likeBtn.dataset.id); return; }
+  const delBtn = e.target.closest(".delete-post-btn");
+  if (delBtn) {
+    const id = delBtn.dataset.id;
+    pendingDeletePosts.add(id); renderFeedList();
+    showUndoSnackbar("Postingan dihapus",
+      () => { db.collection("posts").doc(id).delete().catch(err => toast("Gagal hapus: " + err.message)); pendingDeletePosts.delete(id); },
+      () => { pendingDeletePosts.delete(id); renderFeedList(); });
+  }
+});
+function editPost(postId, oldCaption) {
+  const newCaption = prompt("Edit caption:", oldCaption);
+  if (newCaption === null || newCaption.trim() === "") return;
+  db.collection("posts").doc(postId).update({ caption: filterText(newCaption.trim()), edited: true }).catch(err => toast("Gagal edit: " + err.message));
+}
+function toggleLike(postId) {
+  if (!currentUser) { toast("Login dulu buat like"); return; }
+  const ref = db.collection("posts").doc(postId);
+  db.runTransaction(async t => {
+    const doc = await t.get(ref);
+    const likes = doc.data().likes || [];
+    const has = likes.includes(currentUser.uid);
+    t.update(ref, { likes: has ? likes.filter(u => u !== currentUser.uid) : [...likes, currentUser.uid] });
+  }).catch(err => toast("Gagal: " + err.message));
+}
+
+// ================= CHAT: reply, reaksi, typing, delete/undo =================
+const REACTION_EMOJIS = ["👍", "❤️", "😂", "😮", "😢", "🙏"];
+let replyingTo = null;
+let lastChatSnap = null;
+let pendingDeleteChats = new Set();
+let typingTimeout = null;
+
+function renderChatInput() {
+  const el = document.getElementById("chatInputArea");
+  if (!currentUser) {
+    el.innerHTML = `<div class="login-gate" style="margin-top:8px">Login untuk ikut ngobrol.<br><button class="auth-btn" onclick="openAuthModal()" style="margin-top:8px">Login</button></div>`;
+    return;
+  }
+  el.innerHTML = `
+    <div id="replyPreviewBar"></div>
+    <div class="chat-input-row">
+      <input type="text" id="chatInput" placeholder="Tulis pesan..." maxlength="250">
+      <button class="send-btn" id="chatSendBtn">➤</button>
+    </div>`;
+  const input = document.getElementById("chatInput");
+  document.getElementById("chatSendBtn").addEventListener("click", sendMessage);
+  input.addEventListener("keydown", e => { if (e.key === "Enter") sendMessage(); });
+  input.addEventListener("input", () => {
+    db.collection("typing").doc(currentUser.uid).set({ name: userProfile.name, ts: Date.now() });
+    clearTimeout(typingTimeout);
+    typingTimeout = setTimeout(() => db.collection("typing").doc(currentUser.uid).delete().catch(() => {}), 3000);
+  });
+  renderReplyPreview();
+}
+function renderReplyPreview() {
+  const bar = document.getElementById("replyPreviewBar");
+  if (!bar) return;
+  if (!replyingTo) { bar.innerHTML = ""; return; }
+  bar.innerHTML = `<div class="reply-preview-bar"><span>Membalas: ${escapeHtml(replyingTo.text.slice(0, 40))}</span><button onclick="cancelReply()">✕</button></div>`;
+}
+function cancelReply() { replyingTo = null; renderReplyPreview(); }
+
+let sending = false;
+async function sendMessage() {
+  if (sending || !currentUser) { if (!currentUser) toast("Login dulu ya"); return; }
+  if (!throttledOk()) return;
+  const input = document.getElementById("chatInput");
+  const text = input.value.trim();
+  if (!text) return;
+  sending = true;
+  const btn = document.getElementById("chatSendBtn");
+  if (btn) btn.disabled = true;
+  try {
+    await db.collection("chat").add({
+      uid: currentUser.uid, name: userProfile.name, text: filterText(text),
+      edited: false, reactions: {}, replyTo: replyingTo,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    input.value = ""; replyingTo = null; renderReplyPreview();
+    db.collection("typing").doc(currentUser.uid).delete().catch(() => {});
+  } catch (err) { toast("Gagal kirim: " + err.message); }
+  finally { sending = false; if (btn) btn.disabled = false; }
+}
+
+function renderChatMessages() {
+  if (!lastChatSnap) return;
+  const box = document.getElementById("chatMessages");
+  const docs = lastChatSnap.docs.filter(d => !pendingDeleteChats.has(d.id));
+  if (docs.length === 0) { box.innerHTML = `<div class="empty-state">Belum ada obrolan. Mulai duluan yuk!</div>`; return; }
+  box.innerHTML = "";
+  docs.forEach(doc => {
+    const m = doc.data();
+    const mine = currentUser && m.uid === currentUser.uid;
+    const wrap = document.createElement("div");
+    wrap.className = `msg-wrap ${mine ? "mine" : "other"}`;
+    const reactionsHtml = Object.entries(m.reactions || {}).filter(([,uids]) => uids.length > 0)
+      .map(([emoji, uids]) => `<span class="reaction-chip">${emoji} ${uids.length}</span>`).join("");
+    wrap.innerHTML = `
+      ${m.replyTo ? `<div class="reply-quote">↪ ${escapeHtml((m.replyTo.text || "").slice(0, 50))}</div>` : ""}
+      <div class="msg" data-id="${doc.id}">
+        ${!mine ? `<span class="m-name">${escapeHtml(m.name || "Kapten")}</span>` : ""}
+        ${escapeHtml(m.text)}${m.edited ? '<span class="edited-tag">(diedit)</span>' : ""}
+      </div>
+      ${reactionsHtml ? `<div class="msg-reactions">${reactionsHtml}</div>` : ""}
+      <div class="msg-actions-row">
+        <button class="link-btn reply-btn" data-id="${doc.id}">Balas</button>
+        <button class="link-btn react-btn" data-id="${doc.id}">Reaksi</button>
+        ${mine && canEdit(m.timestamp) ? `<button class="link-btn edit-chat-btn" data-id="${doc.id}">Edit</button>` : ""}
+        ${mine && canDelete(m.timestamp) ? `<button class="link-btn delete-chat-btn" data-id="${doc.id}" style="color:var(--danger)">Hapus</button>` : ""}
+      </div>`;
+    box.appendChild(wrap);
+  });
+  box.scrollTop = box.scrollHeight;
+}
+db.collection("chat").orderBy("timestamp", "desc").limit(50).onSnapshot(snap => { lastChatSnap = snap; renderChatMessages(); }, err => toast("Gagal muat chat: " + err.message));
+
+document.getElementById("chatMessages").addEventListener("click", e => {
+  const replyBtn = e.target.closest(".reply-btn");
+  if (replyBtn) {
+    const doc = lastChatSnap.docs.find(d => d.id === replyBtn.dataset.id);
+    if (doc) { replyingTo = { id: doc.id, name: doc.data().name, text: doc.data().text }; renderReplyPreview(); document.getElementById("chatInput")?.focus(); }
+    return;
+  }
+  const reactBtn = e.target.closest(".react-btn");
+  if (reactBtn) { showReactionPicker(reactBtn.dataset.id, reactBtn); return; }
+  const editBtn = e.target.closest(".edit-chat-btn");
+  if (editBtn) {
+    const doc = lastChatSnap.docs.find(d => d.id === editBtn.dataset.id);
+    if (doc) editChatMsg(doc.id, doc.data().text);
+    return;
+  }
+  const delBtn = e.target.closest(".delete-chat-btn");
+  if (delBtn) {
+    const id = delBtn.dataset.id;
+    pendingDeleteChats.add(id); renderChatMessages();
+    showUndoSnackbar("Pesan dihapus",
+      () => { db.collection("chat").doc(id).delete().catch(err => toast("Gagal hapus: " + err.message)); pendingDeleteChats.delete(id); },
+      () => { pendingDeleteChats.delete(id); renderChatMessages(); });
+  }
+});
+function showReactionPicker(msgId, anchorBtn) {
+  document.querySelectorAll(".reaction-picker").forEach(p => p.remove());
+  const picker = document.createElement("div");
+  picker.className = "reaction-picker";
+  picker.innerHTML = REACTION_EMOJIS.map(e => `<span data-emoji="${e}">${e}</span>`).join("");
+  anchorBtn.parentElement.style.position = "relative";
+  anchorBtn.parentElement.appendChild(picker);
+  picker.addEventListener("click", e => {
+    const emoji = e.target.dataset.emoji;
+    if (emoji) toggleReaction(msgId, emoji);
+    picker.remove();
+  });
+  setTimeout(() => document.addEventListener("click", function close(ev) {
+    if (!picker.contains(ev.target) && ev.target !== anchorBtn) { picker.remove(); document.removeEventListener("click", close); }
+  }), 10);
+}
+function toggleReaction(msgId, emoji) {
+  if (!currentUser) { toast("Login dulu buat reaksi"); return; }
+  const ref = db.collection("chat").doc(msgId);
+  db.runTransaction(async t => {
+    const doc = await t.get(ref);
+    const reactions = doc.data().reactions || {};
+    const uids = reactions[emoji] || [];
+    reactions[emoji] = uids.includes(currentUser.uid) ? uids.filter(u => u !== currentUser.uid) : [...uids, currentUser.uid];
+    t.update(ref, { reactions });
+  }).catch(err => toast("Gagal: " + err.message));
+}
+function editChatMsg(msgId, oldText) {
+  const newText = prompt("Edit pesan:", oldText);
+  if (newText === null || newText.trim() === "") return;
+  db.collection("chat").doc(msgId).update({ text: filterText(newText.trim()), edited: true }).catch(err => toast("Gagal edit: " + err.message));
+}
+
+// Typing indicator listener
+db.collection("typing").onSnapshot(snap => {
+  const el = document.getElementById("typingIndicator");
+  if (!el) return;
+  const now = Date.now();
+  const others = snap.docs.filter(d => d.id !== (currentUser?.uid) && (now - d.data().ts) < 4000);
+  el.textContent = others.length ? `${others.map(d => d.data().name).join(", ")} sedang mengetik...` : "";
+});
+
+// ================= AI CHATBOT =================
+function renderAiInputState() {
+  const el = document.getElementById("aiInput");
+  if (!el) return;
+  if (!currentUser) { el.disabled = true; el.placeholder = "Login dulu untuk chat AI"; }
+  else { el.disabled = false; el.placeholder = "Tanya sesuatu..."; }
+}
+document.getElementById("aiInput").addEventListener("input", e => {
+  document.getElementById("aiCharCounter").textContent = `${AI_CHAR_LIMIT_PER_CHAT - e.target.value.length} karakter tersisa`;
+});
+document.getElementById("aiInput").addEventListener("keydown", e => { if (e.key === "Enter") sendAiMessage(); });
+
+async function loadAiHistory() {
+  if (!currentUser) return;
+  const box = document.getElementById("aiMessages");
+  box.innerHTML = `<div class="empty-state">Memuat riwayat...</div>`;
+  try { renderAiMessages(await callApi("getAiHistory", { uid: currentUser.uid }) || []); }
+  catch { box.innerHTML = `<div class="empty-state">Gagal memuat riwayat</div>`; }
+}
+function renderAiMessages(history) {
+  const box = document.getElementById("aiMessages");
+  if (!history.length) { box.innerHTML = `<div class="empty-state">Mulai ngobrol sama AI, 100% pribadi.</div>`; return; }
+  box.innerHTML = history.map(m => `<div class="msg-wrap ${m.role === "user" ? "mine" : "other"}"><div class="msg">${escapeHtml(m.content)}</div></div>`).join("");
+  box.scrollTop = box.scrollHeight;
+}
+let aiSending = false;
+async function sendAiMessage() {
+  if (aiSending) return;
+  if (!currentUser) { toast("Login dulu ya"); return; }
+  const input = document.getElementById("aiInput");
+  const text = input.value.trim();
+  if (!text) return;
+  if (text.length > AI_CHAR_LIMIT_PER_CHAT) { toast(`Maksimal ${AI_CHAR_LIMIT_PER_CHAT} karakter per chat`); return; }
+  aiSending = true;
+  const btn = document.getElementById("aiSendBtn");
+  btn.disabled = true;
+  const box = document.getElementById("aiMessages");
+  box.insertAdjacentHTML("beforeend", `<div class="msg-wrap mine"><div class="msg">${escapeHtml(text)}</div></div>`);
+  box.scrollTop = box.scrollHeight;
+  input.value = "";
+  try {
+    const provider = document.getElementById("aiProviderSelect").value;
+    const result = await callApi("aiChat", { uid: currentUser.uid, message: text, provider });
+    box.insertAdjacentHTML("beforeend", `<div class="msg-wrap other"><div class="msg">${escapeHtml(result.reply)}</div></div>`);
+    box.scrollTop = box.scrollHeight;
+  } catch (err) { toast(err.message); }
+  finally { aiSending = false; btn.disabled = false; }
+}
+function clearAiHistory() {
+  if (!currentUser) { toast("Login dulu ya"); return; }
+  if (!confirm("Hapus semua riwayat chat AI? Tidak bisa dibatalkan.")) return;
+  callApi("clearAiHistory", { uid: currentUser.uid })
+    .then(() => { toast("Riwayat dihapus"); document.getElementById("aiMessages").innerHTML = ""; })
+    .catch(err => toast("Gagal: " + err.message));
+}
+</script>
+</body>
+</html>
