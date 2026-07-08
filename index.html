@@ -100,7 +100,6 @@ main{flex:1;width:100%;max-width:640px;margin:0 auto;padding:14px;padding-bottom
 .chat-input-row input{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:10px 16px;color:var(--text);font-size:.88rem}
 .send-btn{background:var(--accent);border:none;width:40px;height:40px;border-radius:50%;color:#fff;font-size:1.1rem;cursor:pointer;flex-shrink:0}
 
-.ai-fab{position:fixed;bottom:90px;right:16px;width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--accent) 0%,var(--accent-bright) 100%);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.5rem;box-shadow:0 4px 16px rgba(0,0,0,.4);border:none;cursor:pointer;z-index:150}
 
 .side-panel{position:fixed;top:0;right:0;height:100%;width:280px;max-width:82vw;background:var(--bg);border-left:1px solid var(--border);transform:translateX(100%);transition:transform .25s ease;z-index:300;display:flex;flex-direction:column;padding:16px;overflow-y:auto}
 .side-panel.open{transform:translateX(0)}
@@ -136,10 +135,7 @@ main{flex:1;width:100%;max-width:640px;margin:0 auto;padding:14px;padding-bottom
 .spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;display:inline-block;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-#aiView .chat-container{height:calc(100vh - 130px)}
-.ai-header-bar{display:flex;align-items:center;justify-content:space-between;padding:8px 2px;margin-bottom:6px}
-.ai-header-bar select{background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-size:.8rem}
-.char-counter{font-size:.72rem;color:var(--text-dim)}
+#aiView .chat-container{height:calc(100vh - 100px)}
 
 @media (min-width:768px){
   main{max-width:900px;padding:24px 20px}
@@ -212,27 +208,17 @@ main{flex:1;width:100%;max-width:640px;margin:0 auto;padding:14px;padding-bottom
   </section>
 
   <section id="aiView" class="view">
-    <div class="ai-header-bar">
-      <select id="aiProviderSelect">
-        <option value="groq">Groq</option>
-        <option value="gemini">Gemini</option>
-        <option value="openrouter">OpenRouter</option>
-      </select>
-      <span class="char-counter" id="aiCharCounter">700 karakter tersisa</span>
-    </div>
     <div class="chat-container">
       <div class="chat-messages" id="aiMessages"></div>
       <div class="chat-input-bar">
         <div class="chat-input-row">
-          <input type="text" id="aiInput" placeholder="Tanya sesuatu..." maxlength="700">
+          <input type="text" id="aiInput" placeholder="Tanya sesuatu..." maxlength="2000">
           <button class="send-btn" id="aiSendBtn" onclick="sendAiMessage()">➤</button>
         </div>
       </div>
     </div>
   </section>
 </main>
-
-<button class="ai-fab" onclick="openAiView()" title="Chat AI">✨</button>
 
 <div class="modal-overlay" id="authModal">
   <div class="modal-sheet">
@@ -265,6 +251,15 @@ main{flex:1;width:100%;max-width:640px;margin:0 auto;padding:14px;padding-bottom
   </div>
 </div>
 
+<div class="modal-overlay" id="postActionModal">
+  <div class="modal-sheet">
+    <button class="close-modal" onclick="closePostActionModal()">✕</button>
+    <h2>Opsi Postingan</h2>
+    <button class="menu-item" id="postActionShareBtn">🔗 Bagikan</button>
+    <button class="menu-item" id="postActionDeleteBtn" style="color:var(--danger)">🗑️ Hapus</button>
+  </div>
+</div>
+
 <div id="toast"></div>
 <div id="undoSnackbar"><span id="undoText">Dihapus</span><button class="link-btn" id="undoBtn" style="font-weight:700">Urungkan</button></div>
 
@@ -284,11 +279,12 @@ const firebaseConfig = {
 const IMGBB_KEY = "a445c323b1b7e93a89ff6c6ca0b83dd9";
 const MAX_UPLOAD_MB = 3;
 const TARGET_COMPRESS_MB = 1;
-const AI_CHAR_LIMIT_PER_CHAT = 700;
 const EDIT_WINDOW_MS = 15 * 60 * 1000;
 const DELETE_WINDOW_MS = 10 * 24 * 60 * 60 * 1000;
 const SEND_THROTTLE_MS = 3000;
 const API_ENDPOINT = "/.netlify/functions/api";
+// TODO: ganti USERNAME/bow-archive sesuai repo GitHub arsip yang kamu bikin
+const ARCHIVE_BASE_URL = "https://cdn.jsdelivr.net/gh/USERNAME/bow-archive@main/archive";
 
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
@@ -422,16 +418,20 @@ async function uploadToImgbb(file) {
 
 // ================= AUTH =================
 auth.onAuthStateChanged(async user => {
+  let isNewUser = false;
   if (user && !user.isAnonymous) {
     currentUser = user;
     try {
       userProfile = await callApi("getProfile", { uid: user.uid, defaultName: user.displayName, defaultPhoto: user.photoURL });
+      isNewUser = !!userProfile.isNewUser;
       applyTheme(userProfile.theme || "dark");
     } catch (e) {
       userProfile = { name: user.displayName || "Kapten", photoURL: user.photoURL || "", theme: "dark", notif: true };
     }
   } else { currentUser = null; userProfile = null; }
   renderAuthArea(); renderComposer(); renderChatInput(); renderAiInputState();
+  if (isNewUser) openProfileModal();
+  handleSharedPostLink(); // dijaga flag internal, aman dipanggil berkali-kali
 });
 auth.signInAnonymously().catch(() => {});
 
@@ -611,16 +611,17 @@ function renderFeedList() {
   postCache = {};
   docs.forEach(doc => {
     const p = doc.data();
-    postCache[doc.id] = p.caption;
+    postCache[doc.id] = p; // simpen objek post penuh (dulu cuma caption), dipake buat action sheet & share
     const liked = currentUser && p.likes && p.likes.includes(currentUser.uid);
     const isMine = currentUser && p.uid === currentUser.uid;
     const div = document.createElement("div");
     div.className = "post";
+    div.dataset.id = doc.id;
     div.innerHTML = `
       <div class="post-head">
         ${p.photoURL ? `<img src="${p.photoURL}" alt="">` : `<div style="width:30px;height:30px;border-radius:50%;background:var(--surface)"></div>`}
         <div><div class="name">${escapeHtml(p.name || "Kapten")}</div><div class="time">${timeAgo(p.timestamp)}</div></div>
-        ${isMine && canDelete(p.timestamp) ? `<button class="link-btn delete-post-btn" data-id="${doc.id}" style="margin-left:auto;color:var(--danger)">hapus</button>` : ""}
+        <button class="link-btn post-menu-btn" data-id="${doc.id}" style="margin-left:auto;font-size:1.1rem">⋮</button>
       </div>
       ${p.caption ? `<div class="post-caption">${escapeHtml(p.caption)}${p.edited ? '<span class="edited-tag">(diedit)</span>' : ""}${isMine && canEdit(p.timestamp) ? ` <button class="link-btn edit-post-btn" data-id="${doc.id}" style="font-size:.72rem">edit</button>` : ""}</div>` : ""}
       ${p.imageUrl ? `<img class="post-img" src="${p.imageUrl}" loading="lazy" alt="hasil battle">` : ""}
@@ -632,18 +633,99 @@ db.collection("posts").orderBy("timestamp", "desc").limit(30).onSnapshot(snap =>
 
 document.getElementById("feedList").addEventListener("click", e => {
   const editBtn = e.target.closest(".edit-post-btn");
-  if (editBtn) { editPost(editBtn.dataset.id, postCache[editBtn.dataset.id] || ""); return; }
+  if (editBtn) { editPost(editBtn.dataset.id, (postCache[editBtn.dataset.id] || {}).caption || ""); return; }
   const likeBtn = e.target.closest(".like-btn");
   if (likeBtn) { toggleLike(likeBtn.dataset.id); return; }
-  const delBtn = e.target.closest(".delete-post-btn");
-  if (delBtn) {
-    const id = delBtn.dataset.id;
-    pendingDeletePosts.add(id); renderFeedList();
-    showUndoSnackbar("Postingan dihapus",
-      () => { db.collection("posts").doc(id).delete().catch(err => toast("Gagal hapus: " + err.message)); pendingDeletePosts.delete(id); },
-      () => { pendingDeletePosts.delete(id); renderFeedList(); });
-  }
+  const menuBtn = e.target.closest(".post-menu-btn");
+  if (menuBtn) { openPostActionSheet(menuBtn.dataset.id); return; }
 });
+
+// Long-press di HP buat buka menu opsi post yang sama kayak tombol ⋮
+let postLongPressTimer = null;
+document.getElementById("feedList").addEventListener("touchstart", e => {
+  const postEl = e.target.closest(".post");
+  if (!postEl || !postEl.dataset.id) return;
+  postLongPressTimer = setTimeout(() => openPostActionSheet(postEl.dataset.id), 500);
+});
+["touchend", "touchmove", "touchcancel"].forEach(evt => {
+  document.getElementById("feedList").addEventListener(evt, () => clearTimeout(postLongPressTimer));
+});
+
+// ============= ACTION SHEET: Bagikan & Hapus =============
+let currentActionPostId = null;
+function openPostActionSheet(postId) {
+  currentActionPostId = postId;
+  const p = postCache[postId];
+  const isMine = currentUser && p && p.uid === currentUser.uid;
+  document.getElementById("postActionDeleteBtn").style.display = (isMine && p && canDelete(p.timestamp)) ? "flex" : "none";
+  document.getElementById("postActionModal").classList.add("show");
+}
+function closePostActionModal() { document.getElementById("postActionModal").classList.remove("show"); }
+document.getElementById("postActionShareBtn").addEventListener("click", () => {
+  sharePost(currentActionPostId);
+  closePostActionModal();
+});
+document.getElementById("postActionDeleteBtn").addEventListener("click", () => {
+  deletePostById(currentActionPostId);
+  closePostActionModal();
+});
+function sharePost(postId) {
+  const p = postCache[postId] || {};
+  const url = `${location.origin}${location.pathname}?post=${postId}`;
+  const text = `${p.name || "Kapten"}: ${(p.caption || "").slice(0, 80)}`;
+  if (navigator.share) {
+    navigator.share({ title: "Battle Of Warships ID", text, url }).catch(() => {});
+  } else if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(() => toast("Link disalin!")).catch(() => toast(url));
+  } else {
+    toast(url);
+  }
+}
+function deletePostById(id) {
+  pendingDeletePosts.add(id); renderFeedList();
+  showUndoSnackbar("Postingan dihapus",
+    () => { db.collection("posts").doc(id).delete().catch(err => toast("Gagal hapus: " + err.message)); pendingDeletePosts.delete(id); },
+    () => { pendingDeletePosts.delete(id); renderFeedList(); });
+}
+
+// ============= BUKA LINK SHARE (?post=<id>) =============
+let sharedPostHandled = false;
+async function handleSharedPostLink() {
+  if (sharedPostHandled) return;
+  const params = new URLSearchParams(location.search);
+  const postId = params.get("post");
+  if (!postId) return;
+  sharedPostHandled = true;
+
+  try {
+    const doc = await db.collection("posts").doc(postId).get();
+    if (doc.exists) { renderSharedPostCard(doc.data(), postId, false); return; }
+  } catch (e) { /* lanjut coba arsip */ }
+
+  try {
+    const res = await fetch(`${ARCHIVE_BASE_URL}/posts/${postId}.json`);
+    if (res.ok) { renderSharedPostCard(await res.json(), postId, true); return; }
+  } catch (e) { /* gak ketemu juga */ }
+
+  toast("Postingan tidak ditemukan (mungkin udah dihapus)");
+}
+function renderSharedPostCard(p, id, archived) {
+  const list = document.getElementById("feedList");
+  const div = document.createElement("div");
+  div.className = "post";
+  div.style.border = "2px solid var(--accent)";
+  const timeLabel = archived ? new Date(p.timestamp).toLocaleDateString("id-ID") : timeAgo(p.timestamp);
+  div.innerHTML = `
+    ${archived ? `<div style="padding:8px 12px 0;font-size:.72rem;color:var(--text-dim)">📦 Postingan arsip (lebih dari 3 bulan, read-only)</div>` : `<div style="padding:8px 12px 0;font-size:.72rem;color:var(--accent)">🔗 Postingan yang dibagikan</div>`}
+    <div class="post-head">
+      ${p.photoURL ? `<img src="${p.photoURL}" alt="">` : `<div style="width:30px;height:30px;border-radius:50%;background:var(--surface)"></div>`}
+      <div><div class="name">${escapeHtml(p.name || "Kapten")}</div><div class="time">${timeLabel}</div></div>
+    </div>
+    ${p.caption ? `<div class="post-caption">${escapeHtml(p.caption)}</div>` : ""}
+    ${p.imageUrl ? `<img class="post-img" src="${p.imageUrl}" loading="lazy" alt="hasil battle">` : ""}`;
+  list.prepend(div);
+  setTimeout(() => div.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+}
 function editPost(postId, oldCaption) {
   const newCaption = prompt("Edit caption:", oldCaption);
   if (newCaption === null || newCaption.trim() === "") return;
@@ -722,7 +804,9 @@ async function sendMessage() {
 function renderChatMessages() {
   if (!lastChatSnap) return;
   const box = document.getElementById("chatMessages");
-  const docs = lastChatSnap.docs.filter(d => !pendingDeleteChats.has(d.id));
+  // Query di bawah ambil "desc" (terbaru duluan) buat limit(50) yang bener,
+  // tapi buat ditampilin harus dibalik dulu biar terbaru ada di BAWAH, bukan di atas.
+  const docs = lastChatSnap.docs.filter(d => !pendingDeleteChats.has(d.id)).reverse();
   if (docs.length === 0) { box.innerHTML = `<div class="empty-state">Belum ada obrolan. Mulai duluan yuk!</div>`; return; }
   box.innerHTML = "";
   docs.forEach(doc => {
@@ -824,9 +908,6 @@ function renderAiInputState() {
   if (!currentUser) { el.disabled = true; el.placeholder = "Login dulu untuk chat AI"; }
   else { el.disabled = false; el.placeholder = "Tanya sesuatu..."; }
 }
-document.getElementById("aiInput").addEventListener("input", e => {
-  document.getElementById("aiCharCounter").textContent = `${AI_CHAR_LIMIT_PER_CHAT - e.target.value.length} karakter tersisa`;
-});
 document.getElementById("aiInput").addEventListener("keydown", e => { if (e.key === "Enter") sendAiMessage(); });
 
 async function loadAiHistory() {
@@ -849,7 +930,6 @@ async function sendAiMessage() {
   const input = document.getElementById("aiInput");
   const text = input.value.trim();
   if (!text) return;
-  if (text.length > AI_CHAR_LIMIT_PER_CHAT) { toast(`Maksimal ${AI_CHAR_LIMIT_PER_CHAT} karakter per chat`); return; }
   aiSending = true;
   const btn = document.getElementById("aiSendBtn");
   btn.disabled = true;
@@ -858,8 +938,7 @@ async function sendAiMessage() {
   box.scrollTop = box.scrollHeight;
   input.value = "";
   try {
-    const provider = document.getElementById("aiProviderSelect").value;
-    const result = await callApi("aiChat", { uid: currentUser.uid, message: text, provider });
+    const result = await callApi("aiChat", { uid: currentUser.uid, message: text });
     box.insertAdjacentHTML("beforeend", `<div class="msg-wrap other"><div class="msg">${escapeHtml(result.reply)}</div></div>`);
     box.scrollTop = box.scrollHeight;
   } catch (err) { toast(err.message); }
