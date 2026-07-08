@@ -1,20 +1,18 @@
-// Cloudflare Worker API Gateway - FULL LOGIC + FIXED CORS
-const FIREBASE_WEB_API_KEY = "AIzaSyDGKQuxfKxF0rItQ52XX9gPyguo71hMXOo";
+// Cloudflare Worker API Gateway
+// Pastikan Environment Variables sudah di-set di Dashboard Cloudflare Pages:
+// SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, GROQ_API_KEY
+
+const FIREBASE_WEB_API_KEY = "AIzaSyDGKQuxfKxF0rItQ52XX9gPyguo71hMXOo"; // Aman diexpose
 const AI_WORD_LIMIT_PER_DAY = 350;
 const AI_GLOBAL_DAILY_CAP = 300000;
 const BAD_WORDS = ["anjing", "bangsat", "kontol", "memek", "goblok"];
 const AI_SYSTEM_PROMPT = "Kamu adalah asisten santai untuk komunitas pemain game Battle Of Warships. Jawab dengan ramah dan singkat dalam Bahasa Indonesia. Jangan memberi instruksi berbahaya, ilegal, atau eksplisit apapun alasannya, dan tetap sopan.";
 
-// ---------- Helper Responses (FIXED CORS) ----------
+// ---------- Helper Responses ----------
 function resp(statusCode, obj) {
   return new Response(JSON.stringify(obj), {
     status: statusCode,
-    headers: { 
-      "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type"
-    }
+    headers: { "Content-Type": "application/json" }
   });
 }
 
@@ -64,7 +62,7 @@ async function sb(env, path, options = {}) {
   return text ? JSON.parse(text) : null;
 }
 
-async function sbUpsert(env, table, doc, conflictCol) {
+function sbUpsert(env, table, doc, conflictCol) {
   return sb(env, `${table}?on_conflict=${conflictCol}`, {
     method: "POST",
     headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
@@ -159,6 +157,7 @@ async function incrementGlobalCap(env, chars) {
   });
 }
 
+// ---------- AI Provider (Groq) ----------
 async function callGroq(env, messages) {
   const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
@@ -176,15 +175,26 @@ async function callGroq(env, messages) {
 
 async function aiChat(env, { uid, message }) {
   if (!message || !message.trim()) throw new Error("Pesan gak boleh kosong");
+
   const globalUsed = await checkGlobalCap(env);
-  if (globalUsed > AI_GLOBAL_DAILY_CAP) throw new Error("Layanan AI sedang penuh hari ini.");
+  if (globalUsed > AI_GLOBAL_DAILY_CAP) {
+    throw new Error("Layanan AI sedang penuh hari ini, coba lagi besok ya.");
+  }
+
   const messageWords = countWords(message);
   const limit = await checkRateLimit(env, uid);
-  if (limit.wordsUsed + messageWords > AI_WORD_LIMIT_PER_DAY) throw new Error("Limit harian habis.");
+  
+  if (limit.wordsUsed + messageWords > AI_WORD_LIMIT_PER_DAY) {
+    throw new Error("Limit chat AI harian kamu udah habis. Coba lagi 24 jam lagi ya.");
+  }
+
   const cleanMessage = filterText(message);
+
   const historyRows = await sb(env, `ai_chats?uid=eq.${encodeURIComponent(uid)}&select=role,content&order=created_at.desc&limit=10`);
   const recentHistory = (historyRows || []).reverse().map(r => ({ role: r.role, content: r.content }));
+
   const reply = filterText(await callGroq(env, [...recentHistory, { role: "user", content: cleanMessage }]));
+
   const now = new Date().toISOString();
   await sb(env, "ai_chats", {
     method: "POST",
@@ -194,43 +204,59 @@ async function aiChat(env, { uid, message }) {
       { uid, role: "assistant", content: reply, created_at: now }
     ])
   });
+
   await incrementRateLimit(env, uid, messageWords + countWords(reply), limit.resetAt);
   await incrementGlobalCap(env, cleanMessage.length + reply.length);
+
   return { reply };
 }
 
-// ---------- Main Handler ----------
-export default {
-  async fetch(request, env, ctx) {
-    if (request.method === "OPTIONS") {
-      return new Response(null, {
-        headers: { 
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "POST, OPTIONS",
-          "Access-Control-Allow-Headers": "Content-Type"
-        }
-      });
+// ---------- MAIN HANDLER (Cloudflare Pages Functions) ----------
+// PENTING: Pages Functions WAJIB pakai nama export onRequestPost / onRequest / dst.
+// "export default { fetch(request, env, ctx) {...} }" itu format Cloudflare Worker
+// yang berdiri sendiri (lewat wrangler) — beda sama Pages Functions, jadi gak
+// pernah kepanggil sama sekali. Itu sebabnya /api selalu gagal.
+export async function onRequestOptions() {
+  return new Response(null, {
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
     }
-    if (request.method !== "POST") return resp(405, { ok: false, error: "Method not allowed" });
-    let body;
-    try { body = await request.json(); } catch { return resp(400, { ok: false, error: "Body tidak valid" }); }
-    
-    const { action, payload, idToken } = body;
-    try {
-      const authRequired = ["updateProfile", "updateSettings", "getAiHistory", "aiChat", "clearAiHistory"];
-      if (authRequired.includes(action)) {
-        const verifiedUid = await verifyIdToken(idToken);
-        if (!verifiedUid || verifiedUid !== payload?.uid) return resp(401, { ok: false, error: "Autentikasi tidak valid" });
-      }
-      switch (action) {
-        case "getProfile": return resp(200, { ok: true, result: await getProfile(env, payload) });
-        case "updateProfile": return resp(200, { ok: true, result: await updateProfile(env, payload) });
-        case "updateSettings": return resp(200, { ok: true, result: await updateSettings(env, payload) });
-        case "getAiHistory": return resp(200, { ok: true, result: await getAiHistory(env, payload) });
-        case "aiChat": return resp(200, { ok: true, result: await aiChat(env, payload) });
-        case "clearAiHistory": return resp(200, { ok: true, result: await clearAiHistory(env, payload) });
-        default: return resp(400, { ok: false, error: "Aksi tidak dikenal" });
-      }
-    } catch (err) { return resp(500, { ok: false, error: err.message }); }
+  });
+}
+
+export async function onRequestPost(context) {
+  const { request, env } = context;
+
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return resp(400, { ok: false, error: "Body tidak valid" });
   }
-};
+
+  const { action, payload, idToken } = body;
+
+  try {
+    const authRequired = ["updateProfile", "updateSettings", "getAiHistory", "aiChat", "clearAiHistory"];
+    if (authRequired.includes(action)) {
+      const verifiedUid = await verifyIdToken(idToken);
+      if (!verifiedUid || verifiedUid !== payload?.uid) {
+        return resp(401, { ok: false, error: "Autentikasi tidak valid" });
+      }
+    }
+
+    switch (action) {
+      case "getProfile": return resp(200, { ok: true, result: await getProfile(env, payload) });
+      case "updateProfile": return resp(200, { ok: true, result: await updateProfile(env, payload) });
+      case "updateSettings": return resp(200, { ok: true, result: await updateSettings(env, payload) });
+      case "getAiHistory": return resp(200, { ok: true, result: await getAiHistory(env, payload) });
+      case "aiChat": return resp(200, { ok: true, result: await aiChat(env, payload) });
+      case "clearAiHistory": return resp(200, { ok: true, result: await clearAiHistory(env, payload) });
+      default: return resp(400, { ok: false, error: "Aksi tidak dikenal" });
+    }
+  } catch (err) {
+    return resp(500, { ok: false, error: err.message });
+  }
+}
