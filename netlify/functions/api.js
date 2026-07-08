@@ -4,13 +4,10 @@
 // ENV VARS wajib di-set di Netlify (Site settings > Environment variables):
 //   SUPABASE_URL                -> https://mdfjonocepmernchopxa.supabase.co
 //   SUPABASE_SERVICE_ROLE_KEY   -> service_role secret key (Project Settings > API), JANGAN pakai anon/publishable key
-//   GROQ_API_KEY                -> console.groq.com
-//   GEMINI_API_KEY              -> aistudio.google.com/apikey
-//   OPENROUTER_API_KEY          -> openrouter.ai/keys
+//   GROQ_API_KEY                -> console.groq.com (satu-satunya provider AI sementara)
 
 const FIREBASE_WEB_API_KEY = "AIzaSyDGKQuxfKxF0rItQ52XX9gPyguo71hMXOo"; // Firebase apiKey aman diexpose (bukan secret)
-const AI_CHAR_LIMIT_PER_CHAT = 700;
-const AI_CHAR_LIMIT_PER_HOUR = 5000;
+const AI_WORD_LIMIT_PER_DAY = 350; // limit per user, reset tiap 24 jam, gak akumulasi
 const AI_GLOBAL_DAILY_CAP = 300000; // batas total karakter AI seluruh web per hari
 const BAD_WORDS = ["anjing", "bangsat", "kontol", "memek", "goblok"];
 const AI_SYSTEM_PROMPT = "Kamu adalah asisten santai untuk komunitas pemain game Battle Of Warships. Jawab dengan ramah dan singkat dalam Bahasa Indonesia. Jangan memberi instruksi berbahaya, ilegal, atau eksplisit apapun alasannya, dan tetap sopan.";
@@ -53,6 +50,9 @@ function filterText(text) {
   let out = text;
   BAD_WORDS.forEach(w => { out = out.replace(new RegExp(w, "gi"), "*".repeat(w.length)); });
   return out;
+}
+function countWords(text) {
+  return text.trim().split(/\s+/).filter(Boolean).length;
 }
 
 // ---------- Verifikasi Firebase ID Token (tanpa Admin SDK) ----------
@@ -101,14 +101,29 @@ function sbUpsert(table, doc, conflictCol) {
 function rowToProfile(row) {
   return { uid: row.uid, name: row.name, photoURL: row.photo_url, theme: row.theme, notif: row.notif };
 }
+async function nameTaken(name, excludeUid) {
+  const rows = await sb(`users?name=eq.${encodeURIComponent(name)}&select=uid`);
+  return !!(rows && rows.some(r => r.uid !== excludeUid));
+}
+async function ensureUniqueName(baseName, excludeUid) {
+  let candidate = baseName;
+  let suffix = 1;
+  while (await nameTaken(candidate, excludeUid)) {
+    suffix++;
+    candidate = `${baseName}${suffix}`;
+  }
+  return candidate;
+}
 async function getProfile({ uid, defaultName, defaultPhoto }) {
   const rows = await sb(`users?uid=eq.${encodeURIComponent(uid)}&select=*`);
-  if (rows && rows.length) return rowToProfile(rows[0]);
-  const fresh = { uid, name: defaultName || "Kapten", photo_url: defaultPhoto || "", theme: "dark", notif: true };
+  if (rows && rows.length) return { ...rowToProfile(rows[0]), isNewUser: false };
+  const uniqueName = await ensureUniqueName(defaultName || "Kapten", uid);
+  const fresh = { uid, name: uniqueName, photo_url: defaultPhoto || "", theme: "dark", notif: true };
   await sb("users", { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify(fresh) });
-  return rowToProfile(fresh);
+  return { ...rowToProfile(fresh), isNewUser: true };
 }
 async function updateProfile({ uid, name, photoURL }) {
+  if (await nameTaken(name, uid)) throw new Error("Nama sudah dipakai, coba nama lain");
   await sbUpsert("users", { uid, name, photo_url: photoURL }, "uid");
   return { success: true };
 }
@@ -131,20 +146,22 @@ async function clearAiHistory({ uid }) {
 }
 
 async function checkRateLimit(uid) {
+  // Kolom "chars_used" di Supabase sekarang dipakai buat nyimpen jumlah KATA, bukan karakter
+  // (gak perlu ubah schema, cuma beda makna angkanya).
   const rows = await sb(`rate_limits?uid=eq.${encodeURIComponent(uid)}&select=*`);
   const doc = rows && rows[0];
   const now = Date.now();
   if (!doc || now > doc.reset_at) {
-    const resetAt = now + 60 * 60 * 1000;
+    const resetAt = now + 24 * 60 * 60 * 1000; // reset tiap 24 jam, selalu balik ke 0 (gak numpuk)
     await sbUpsert("rate_limits", { uid, chars_used: 0, reset_at: resetAt }, "uid");
-    return { charsUsed: 0, resetAt };
+    return { wordsUsed: 0, resetAt };
   }
-  return { charsUsed: doc.chars_used, resetAt: doc.reset_at };
+  return { wordsUsed: doc.chars_used, resetAt: doc.reset_at };
 }
-async function incrementRateLimit(uid, chars, resetAt) {
+async function incrementRateLimit(uid, words, resetAt) {
   await sb("rpc/increment_rate_limit", {
     method: "POST",
-    body: JSON.stringify({ p_uid: uid, p_chars: chars, p_reset_at: resetAt })
+    body: JSON.stringify({ p_uid: uid, p_chars: words, p_reset_at: resetAt })
   });
 }
 
@@ -161,20 +178,19 @@ async function incrementGlobalCap(chars) {
   });
 }
 
-async function aiChat({ uid, message, provider }) {
-  if (!message || message.length > AI_CHAR_LIMIT_PER_CHAT) {
-    throw new Error(`Maksimal ${AI_CHAR_LIMIT_PER_CHAT} karakter per chat`);
-  }
+async function aiChat({ uid, message }) {
+  if (!message || !message.trim()) throw new Error("Pesan gak boleh kosong");
 
   const globalUsed = await checkGlobalCap();
   if (globalUsed > AI_GLOBAL_DAILY_CAP) {
     throw new Error("Layanan AI sedang penuh hari ini, coba lagi besok ya.");
   }
 
+  const messageWords = countWords(message);
   const limit = await checkRateLimit(uid);
-  if (limit.charsUsed + message.length > AI_CHAR_LIMIT_PER_HOUR) {
-    const minutesLeft = Math.ceil((limit.resetAt - Date.now()) / 60000);
-    throw new Error(`Limit karakter per jam habis. Coba lagi dalam ${minutesLeft} menit.`);
+  // Sengaja gak kasih tau sisa limit ke user, cuma dikasih tau pas udah bener2 habis.
+  if (limit.wordsUsed + messageWords > AI_WORD_LIMIT_PER_DAY) {
+    throw new Error("Limit chat AI harian kamu udah habis. Coba lagi 24 jam lagi ya.");
   }
 
   const cleanMessage = filterText(message);
@@ -182,7 +198,7 @@ async function aiChat({ uid, message, provider }) {
   const historyRows = await sb(`ai_chats?uid=eq.${encodeURIComponent(uid)}&select=role,content&order=created_at.desc&limit=10`);
   const recentHistory = (historyRows || []).reverse().map(r => ({ role: r.role, content: r.content }));
 
-  const reply = filterText(await callAiProvider(provider, [...recentHistory, { role: "user", content: cleanMessage }]));
+  const reply = filterText(await callGroq([...recentHistory, { role: "user", content: cleanMessage }]));
 
   const now = new Date().toISOString();
   await sb("ai_chats", {
@@ -194,23 +210,13 @@ async function aiChat({ uid, message, provider }) {
     ])
   });
 
-  const totalChars = cleanMessage.length + reply.length;
-  await incrementRateLimit(uid, totalChars, limit.resetAt);
-  await incrementGlobalCap(totalChars);
+  await incrementRateLimit(uid, messageWords + countWords(reply), limit.resetAt);
+  await incrementGlobalCap(cleanMessage.length + reply.length); // cap global tetap dihitung karakter
 
   return { reply };
 }
 
-// ---------- AI Providers ----------
-async function callAiProvider(provider, messages) {
-  switch (provider) {
-    case "gemini": return callGemini(messages);
-    case "openrouter": return callOpenRouter(messages);
-    case "groq":
-    default: return callGroq(messages);
-  }
-}
-
+// ---------- AI Provider (Groq — satu-satunya, sementara) ----------
 async function callGroq(messages) {
   const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
@@ -224,45 +230,4 @@ async function callGroq(messages) {
   if (!res.ok) throw new Error("AI provider error (Groq)");
   const data = await res.json();
   return data.choices?.[0]?.message?.content || "Maaf, gak bisa jawab sekarang.";
-}
-
-async function callOpenRouter(messages) {
-  const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
-      "HTTP-Referer": "https://battle-of-warships-id.netlify.app",
-      "X-Title": "Battle Of Warships ID"
-    },
-    body: JSON.stringify({
-      model: "meta-llama/llama-3.3-70b-instruct:free",
-      max_tokens: 400,
-      messages: [{ role: "system", content: AI_SYSTEM_PROMPT }, ...messages]
-    })
-  });
-  if (!res.ok) throw new Error("AI provider error (OpenRouter)");
-  const data = await res.json();
-  return data.choices?.[0]?.message?.content || "Maaf, gak bisa jawab sekarang.";
-}
-
-async function callGemini(messages) {
-  const contents = messages.map(m => ({
-    role: m.role === "assistant" ? "model" : "user",
-    parts: [{ text: m.content }]
-  }));
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: AI_SYSTEM_PROMPT }] },
-        contents
-      })
-    }
-  );
-  if (!res.ok) throw new Error("AI provider error (Gemini)");
-  const data = await res.json();
-  return data.candidates?.[0]?.content?.parts?.[0]?.text || "Maaf, gak bisa jawab sekarang.";
 }
